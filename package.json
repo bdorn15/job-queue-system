@@ -1,0 +1,16 @@
+{
+  "name": "job-queue-system",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --parallel -r dev",
+    "build": "pnpm -r build",
+    "db:generate": "pnpm --filter @jqs/database generate",
+    "db:migrate": "pnpm --filter @jqs/database migrate:dev",
+    "db:studio": "pnpm --filter @jqs/database studio"
+  },
+  "engines": {
+    "node": ">=20",
+    "pnpm": ">=9"
+  }
+}
