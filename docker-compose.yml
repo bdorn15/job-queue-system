@@ -9,6 +9,9 @@ services:
       - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      fixed:
+        ipv4_address: 172.20.0.2
 
   redis:
     image: redis:7-alpine
@@ -16,6 +19,16 @@ services:
       - '6379:6379'
     volumes:
       - redis_data:/data
+    networks:
+      fixed:
+        ipv4_address: 172.20.0.3
+        
+networks:
+  fixed:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24
 
 volumes:
   postgres_data:

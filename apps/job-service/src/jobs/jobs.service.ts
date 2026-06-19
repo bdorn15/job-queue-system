@@ -1,30 +1,67 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
 import { PrismaService } from '../prisma/prisma.service';
+import { CreateJobDto } from './dto/create-job.dto';
+import { JOB_QUEUE } from './jobs.constants';
+import { Prisma } from '@jqs/database';
 
 @Injectable()
 export class JobsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @InjectQueue(JOB_QUEUE) private readonly jobQueue: Queue,
+  ) {}
 
-  create(data: unknown) {
-    return { message: 'create job', data };
+  async create(dto: CreateJobDto, userId: string) {
+    const job = await this.prisma.job.create({
+      data: {
+        name: dto.name,
+        payload: dto.payload as Prisma.InputJsonValue,
+        priority: dto.priority,
+        runAt: dto.runAt,
+        maxAttempts: dto.maxAttempts,
+        userId,
+      },
+    });
+
+    await this.jobQueue.add(job.name, { jobId: job.id }, {
+      delay: Math.max(0, job.runAt.getTime() - Date.now()),
+      priority: dto.priority === 'HIGH' ? 1 : dto.priority === 'LOW' ? 3 : 2,
+      attempts: dto.maxAttempts,
+      backoff: { type: 'exponential', delay: 5000 },
+    });
+
+    return job;
   }
 
-  findAll() {
+  findAll(userId: string) {
     return this.prisma.job.findMany({
+      where: { userId },
       orderBy: { createdAt: 'desc' },
     });
   }
 
-  findOne(id: string) {
-    return this.prisma.job.findUnique({
+  async findOne(id: string, userId: string) {
+    const job = await this.prisma.job.findUnique({
       where: { id },
       include: { logs: true },
     });
+
+    if (!job || job.userId !== userId) {
+      throw new NotFoundException(`Job ${id} not found`);
+    }
+
+    return job;
   }
 
-  remove(id: string) {
-    return this.prisma.job.delete({
-      where: { id },
-    });
+  async remove(id: string, userId: string) {
+    const job = await this.prisma.job.findUnique({ where: { id } });
+
+    if (!job || job.userId !== userId) {
+      throw new NotFoundException(`Job ${id} not found`);
+    }
+
+    return this.prisma.job.delete({ where: { id } });
   }
 }

@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
-import { BullModule } from '@nestjs/bullmq';
 import { JwtModule } from '@nestjs/jwt';
-import { JobsModule } from './jobs/jobs.module';
+import { AuthModule } from './auth/auth.module';
 import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
@@ -9,15 +8,10 @@ import { PrismaModule } from './prisma/prisma.module';
     JwtModule.register({
       global: true,
       secret: process.env.JWT_SECRET ?? 'dev-secret',
-    }),
-    BullModule.forRoot({
-      connection: {
-        host: process.env.REDIS_HOST ?? 'localhost',
-        port: Number(process.env.REDIS_PORT ?? 6379),
-      },
+      signOptions: { expiresIn: '7d' },
     }),
     PrismaModule,
-    JobsModule,
+    AuthModule,
   ],
 })
 export class AppModule {}
