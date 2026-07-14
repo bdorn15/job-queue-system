@@ -1,0 +1,11 @@
+node_modules
+**/node_modules
+.git
+.gitignore
+**/dist
+**/.env
+*.env
+packages/database/src/generated
+README.md
+CLAUDE.md
+postman-collection.json

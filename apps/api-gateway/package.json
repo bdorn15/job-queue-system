@@ -2,6 +2,7 @@
   "name": "@jqs/api-gateway",
   "version": "1.0.0",
   "private": true,
+  "files": ["dist"],
   "scripts": {
     "dev": "nest start --watch",
     "build": "nest build",

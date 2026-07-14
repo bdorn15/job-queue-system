@@ -2,6 +2,7 @@
   "name": "@jqs/job-service",
   "version": "1.0.0",
   "private": true,
+  "files": ["dist"],
   "scripts": {
     "dev": "nest start --watch",
     "build": "nest build",
@@ -14,6 +15,7 @@
     "@nestjs/common": "^10.3.0",
     "@nestjs/core": "^10.3.0",
     "@nestjs/platform-express": "^10.3.0",
+    "@nestjs/swagger": "^7.3.0",
     "bullmq": "^4.18.3",
     "reflect-metadata": "^0.2.1",
     "rxjs": "^7.8.1",

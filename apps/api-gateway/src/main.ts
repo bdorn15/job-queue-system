@@ -9,12 +9,6 @@ import { proxyRoutes } from './proxy.config';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // CORS — erlaubt Requests vom Frontend
-  app.enableCors({
-    origin: process.env.CORS_ORIGIN ?? 'http://localhost:5173',
-    credentials: true,
-  });
-
   // Logging — jeder Request wird geloggt
   app.use(morgan('short'));
 
