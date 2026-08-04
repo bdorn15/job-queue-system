@@ -15,6 +15,13 @@ export class JobsProcessor extends WorkerHost {
   async process(job: Job<{ jobId: string }>): Promise<void> {
     const { jobId } = job.data;
     const isLastAttempt = job.attemptsMade + 1 >= (job.opts.attempts ?? 1);
+
+    const dbJob = await this.prisma.job.findUnique({ where: { id: jobId } });
+    if (!dbJob) {
+      this.logger.warn(`Job ${jobId} no longer exists in DB (deleted after queuing) — skipping`);
+      return;
+    }
+
     this.logger.log(`Processing job ${jobId} (attempt ${job.attemptsMade + 1}/${job.opts.attempts ?? 1})`);
 
     await this.prisma.job.update({

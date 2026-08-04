@@ -14,6 +14,9 @@ export class JobsService {
   ) {}
 
   async create(dto: CreateJobDto, userId: string) {
+    // NOTE: dual-write risk — if BullMQ fails after the DB insert, the job
+    // stays PENDING forever. Acceptable for this project; production would
+    // need a compensating delete or an outbox pattern.
     const job = await this.prisma.job.create({
       data: {
         name: dto.name,
