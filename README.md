@@ -114,8 +114,9 @@ The direct service ports (3001, 3002) and their Swagger docs are exposed for loc
 ### Local Development
 
 ```bash
-# Install dependencies (also generates the Prisma client via postinstall)
+# Install dependencies, then generate the Prisma client
 pnpm install
+pnpm db:generate
 
 # Start infrastructure (postgres + redis)
 docker compose up postgres redis -d

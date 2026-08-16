@@ -4,7 +4,6 @@
   "private": true,
   "main": "./src/generated/index.js",
   "scripts": {
-    "postinstall": "prisma generate",
     "generate": "prisma generate",
     "migrate:dev": "prisma migrate dev",
     "studio": "prisma studio",
