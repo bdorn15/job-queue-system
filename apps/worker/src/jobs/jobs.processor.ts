@@ -14,7 +14,13 @@ export class JobsProcessor extends WorkerHost {
 
   async process(job: Job<{ jobId: string }>): Promise<void> {
     const { jobId } = job.data;
-    const isLastAttempt = job.attemptsMade + 1 >= (job.opts.attempts ?? 1);
+    // bullmq@4 increments attemptsMade in moveToActive before process() runs,
+    // so it's already the 1-indexed current attempt number here (1 on the
+    // first run). bullmq@5 changed this to increment only on failure
+    // (0-indexed on the first run) — if this package is ever upgraded to v5,
+    // these need to go back to `job.attemptsMade + 1`. bullmq is pinned
+    // exactly in package.json to avoid drifting across that boundary silently.
+    const isLastAttempt = job.attemptsMade >= (job.opts.attempts ?? 1);
 
     const dbJob = await this.prisma.job.findUnique({ where: { id: jobId } });
     if (!dbJob) {
@@ -22,15 +28,15 @@ export class JobsProcessor extends WorkerHost {
       return;
     }
 
-    this.logger.log(`Processing job ${jobId} (attempt ${job.attemptsMade + 1}/${job.opts.attempts ?? 1})`);
+    this.logger.log(`Processing job ${jobId} (attempt ${job.attemptsMade}/${job.opts.attempts ?? 1})`);
 
     await this.prisma.job.update({
       where: { id: jobId },
-      data: { status: 'RUNNING', startedAt: new Date(), attempts: job.attemptsMade + 1 },
+      data: { status: 'RUNNING', startedAt: new Date(), attempts: job.attemptsMade },
     });
 
     await this.prisma.jobLog.create({
-      data: { jobId, level: 'info', message: `Attempt ${job.attemptsMade + 1} started` },
+      data: { jobId, level: 'info', message: `Attempt ${job.attemptsMade} started` },
     });
 
     try {

@@ -16,7 +16,7 @@ RUN pnpm install --frozen-lockfile
 # ── migrator: runs prisma migrate deploy and exits ─────────────────────────
 FROM deps AS migrator
 COPY packages/database/prisma ./packages/database/prisma
-CMD ["node_modules/.bin/prisma", "migrate", "deploy", "--schema", "packages/database/prisma/schema.prisma"]
+CMD ["pnpm", "--filter", "@jqs/database", "exec", "prisma", "migrate", "deploy"]
 
 # ── build: generate Prisma client + compile the target service ──────────────
 FROM deps AS build
