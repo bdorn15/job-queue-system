@@ -2,11 +2,15 @@
   "name": "@jqs/auth-service",
   "version": "1.0.0",
   "private": true,
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "dev": "nest start --watch",
     "build": "nest build",
-    "start": "node dist/main.js"
+    "start": "node dist/main.js",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@jqs/database": "workspace:*",
@@ -26,6 +30,7 @@
     "@types/bcryptjs": "^3.0.0",
     "@types/express": "^4.17.21",
     "@types/node": "^20.0.0",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "vitest": "^4.1.10"
   }
 }

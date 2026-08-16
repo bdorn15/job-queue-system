@@ -40,7 +40,7 @@ export class JobsProcessor extends WorkerHost {
     });
 
     try {
-      await this.execute(job);
+      await this.execute(dbJob);
 
       await this.prisma.job.update({
         where: { id: jobId },
@@ -69,8 +69,11 @@ export class JobsProcessor extends WorkerHost {
     }
   }
 
-  private async execute(job: Job<{ jobId: string }>): Promise<void> {
-    this.logger.log(`Executing job "${job.name}" with payload: ${JSON.stringify(job.data)}`);
+  private async execute(dbJob: { name: string; payload: unknown }): Promise<void> {
+    this.logger.log(
+      `Executing job "${dbJob.name}" with payload: ${JSON.stringify(dbJob.payload)}`,
+    );
+
     await new Promise((resolve) => setTimeout(resolve, 500));
   }
 }
