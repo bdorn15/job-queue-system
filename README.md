@@ -97,7 +97,7 @@ cp .env.example .env   # or edit .env directly
 docker compose up --build
 ```
 
-On first start, the `migrator` service automatically runs `prisma migrate deploy` before any other service comes up. Subsequent starts skip this if the DB is already up to date.
+The `migrator` service runs `prisma migrate deploy` before any other service comes up. It runs on every `docker compose up`, not just the first — on subsequent starts it simply finds no pending migrations and exits 0.
 
 Services available after startup:
 
@@ -109,10 +109,12 @@ Services available after startup:
 | Job Service Swagger | http://localhost:3001/docs |
 | Auth Service Swagger | http://localhost:3002/docs |
 
+The direct service ports (3001, 3002) and their Swagger docs are exposed for local development only — see [Known Limitations](#known-limitations).
+
 ### Local Development
 
 ```bash
-# Install dependencies
+# Install dependencies (also generates the Prisma client via postinstall)
 pnpm install
 
 # Start infrastructure (postgres + redis)
@@ -158,6 +160,8 @@ DELETE /jobs/:id                                                           → J
 
 ### Example
 
+Requires [`jq`](https://jqlang.org/) to extract the token from the login response.
+
 ```bash
 # Register and login
 curl -s -X POST http://localhost:3000/auth/register \
@@ -198,12 +202,23 @@ docker compose logs -f worker     # follow worker logs
 
 1. Client sends `POST /jobs` with a JWT token to the gateway
 2. Gateway proxies to job-service, which validates the token
-3. job-service creates a `Job` record in PostgreSQL (`PENDING`) and enqueues it in Redis
+3. job-service creates a `Job` record in PostgreSQL (`PENDING`) **before** enqueuing it in Redis — deliberately in that order: if the enqueue fails, the row is still there and recoverable. The reverse order would leave a queued job whose data was never persisted — unrecoverable, since the payload only existed in the request
 4. Worker picks up the job, updates status to `RUNNING`, executes it
 5. On success: status → `COMPLETED`
 6. On failure with retries remaining: status → `RETRYING`, BullMQ retries with exponential backoff
 7. On final failure: status → `FAILED`
 
 All state transitions are logged in `JobLog`.
+
+## Known Limitations
+
+This project prioritizes demonstrating queue mechanics and service boundaries over production hardening. Known gaps:
+
+- **Dual write without a transaction.** The DB insert and the Redis enqueue (step 3 above) are two separate systems — a crash between them leaves an orphaned `PENDING` job that's never enqueued, and there's no reconciliation mechanism to detect or recover it. A periodic reconciliation job (re-enqueue stale `PENDING` rows) or a transactional outbox pattern would close this gap.
+- **At-least-once delivery without idempotency.** BullMQ retries mean a job can execute more than once — e.g. the worker finishes the actual work but dies before the `COMPLETED` status update, BullMQ marks the job stalled, and it gets picked up and re-executed. Real handlers would need an idempotency key to make repeated execution safe.
+- **Auth is duplicated across services.** Each service runs its own JWT guard rather than relying solely on the gateway, because the service ports (3001, 3002) are directly reachable and not just proxied. For production this means closing the direct ports and/or extracting the guard into a shared package.
+- **`PrismaService` is duplicated per service** instead of living once in `@jqs/database`.
+- **No refresh token.** The access token expires after 7 days with no rotation mechanism.
+- **BullMQ version is pinned.** `attemptsMade` semantics differ between BullMQ v4 and v5, so the dependency is pinned rather than left on a floating range.
 
 > **Note:** The worker simulates job execution — it does not perform any real work (no emails sent, no reports generated, etc.). The `name` and `payload` fields are logged and the job is marked as completed after a short artificial delay. This project demonstrates the infrastructure and queue mechanics, not domain-specific job logic.
