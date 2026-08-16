@@ -132,9 +132,9 @@ The root `.env` is read by Docker Compose. Copy and adjust as needed:
 
 ```env
 POSTGRES_USER=jqs
-POSTGRES_PASSWORD=jqs_password
-POSTGRES_DB=jqs_db
-JWT_SECRET=change-me-in-production
+POSTGRES_PASSWORD=jqspw
+POSTGRES_DB=jqsdb
+JWT_SECRET=dev-only-change-me-openssl-rand-base64-32
 ```
 
 Each service also reads its own `.env` for local development (not used in Docker).
@@ -161,24 +161,22 @@ DELETE /jobs/:id                                                           → J
 
 ### Example
 
-Requires [`jq`](https://jqlang.org/) to extract the token from the login response.
-
 ```bash
 # Register and login
 curl -s -X POST http://localhost:3000/auth/register \
   -H 'Content-Type: application/json' \
-  -d '{"email":"user@example.com","password":"password123"}'
+  -d '{"email":"test@example.com","password":"password123"}'
 
 TOKEN=$(curl -s -X POST http://localhost:3000/auth/login \
   -H 'Content-Type: application/json' \
-  -d '{"email":"user@example.com","password":"password123"}' \
-  | jq -r '.accessToken')
+  -d '{"email":"test@example.com","password":"password123"}' \
+  | grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
 
 # Create a job
 curl -s -X POST http://localhost:3000/jobs \
   -H "Authorization: Bearer $TOKEN" \
   -H 'Content-Type: application/json' \
-  -d '{"name":"send-email","payload":{"to":"user@example.com"},"priority":"HIGH"}'
+  -d '{"name":"send-email","payload":{"to":"a@b.de"},"priority":"HIGH"}'
 ```
 
 A Postman collection is included at `postman-collection.json` — the login request automatically saves the token to a collection variable.
