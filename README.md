@@ -114,9 +114,10 @@ The direct service ports (3001, 3002) and their Swagger docs are exposed for loc
 ### Local Development
 
 ```bash
-# Install dependencies, then generate the Prisma client
+# Install dependencies, then generate + build the shared @jqs/database package
 pnpm install
 pnpm db:generate
+pnpm --filter @jqs/database build
 
 # Start infrastructure (postgres + redis)
 docker compose up postgres redis -d
@@ -216,7 +217,6 @@ This project prioritizes demonstrating queue mechanics and service boundaries ov
 - **Dual write without a transaction.** The DB insert and the Redis enqueue (step 3 above) are two separate systems — a crash between them leaves an orphaned `PENDING` job that's never enqueued, and there's no reconciliation mechanism to detect or recover it. A periodic reconciliation job (re-enqueue stale `PENDING` rows) or a transactional outbox pattern would close this gap.
 - **At-least-once delivery without idempotency.** BullMQ retries mean a job can execute more than once — e.g. the worker finishes the actual work but dies before the `COMPLETED` status update, BullMQ marks the job stalled, and it gets picked up and re-executed. Real handlers would need an idempotency key to make repeated execution safe.
 - **Auth is duplicated across services.** Each service runs its own JWT guard rather than relying solely on the gateway, because the service ports (3001, 3002) are directly reachable and not just proxied. For production this means closing the direct ports and/or extracting the guard into a shared package.
-- **`PrismaService` is duplicated per service** instead of living once in `@jqs/database`.
 - **No refresh token.** The access token expires after 7 days with no rotation mechanism.
 - **BullMQ version is pinned.** `attemptsMade` semantics differ between BullMQ v4 and v5, so the dependency is pinned rather than left on a floating range.
 

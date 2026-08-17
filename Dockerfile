@@ -23,6 +23,7 @@ FROM deps AS build
 ARG APP_NAME
 COPY . .
 RUN pnpm --filter @jqs/database generate
+RUN pnpm --filter @jqs/database build
 RUN pnpm --filter @jqs/${APP_NAME} build
 RUN pnpm --filter @jqs/${APP_NAME} deploy --prod --legacy /out
 

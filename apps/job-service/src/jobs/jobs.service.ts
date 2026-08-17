@@ -1,10 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaService, Prisma } from '@jqs/database';
 import { CreateJobDto } from './dto/create-job.dto';
 import { JOB_QUEUE } from './jobs.constants';
-import { Prisma } from '@jqs/database';
 
 @Injectable()
 export class JobsService {

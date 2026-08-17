@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bullmq';
 import { JwtModule } from '@nestjs/jwt';
+import { PrismaModule } from '@jqs/database';
 import { JobsModule } from './jobs/jobs.module';
-import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
   imports: [

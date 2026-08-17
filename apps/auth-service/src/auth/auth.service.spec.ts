@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ConflictException, UnauthorizedException } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 import { AuthService } from './auth.service';
-import type { PrismaService } from '../prisma/prisma.service';
+import type { PrismaService } from '@jqs/database';
 import type { JwtService } from '@nestjs/jwt';
 
 describe('AuthService', () => {

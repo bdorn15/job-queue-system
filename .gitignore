@@ -5,7 +5,7 @@ dist/
 !.env.example
 
 # Prisma
-packages/database/src/generated/
+packages/database/generated/
 
 # Logs
 *.log

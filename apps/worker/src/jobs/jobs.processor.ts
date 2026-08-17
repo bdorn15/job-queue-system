@@ -1,7 +1,7 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaService } from '@jqs/database';
 import { JOB_QUEUE } from './jobs.constants';
 
 @Processor(JOB_QUEUE)
