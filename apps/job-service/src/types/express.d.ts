@@ -1,4 +1,4 @@
-import { JwtPayload } from '../common/decorators/current-user.decorator';
+import { JwtPayload } from '@jqs/common';
 
 declare global {
   namespace Express {

@@ -9,6 +9,7 @@
     "start": "node dist/main.js"
   },
   "dependencies": {
+    "@jqs/common": "workspace:*",
     "@jqs/database": "workspace:*",
     "@nestjs/bullmq": "10",
     "@nestjs/common": "^10.3.0",

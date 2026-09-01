@@ -11,6 +11,7 @@ COPY apps/auth-service/package.json ./apps/auth-service/package.json
 COPY apps/job-service/package.json ./apps/job-service/package.json
 COPY apps/worker/package.json ./apps/worker/package.json
 COPY packages/database/package.json ./packages/database/package.json
+COPY packages/common/package.json ./packages/common/package.json
 RUN pnpm install --frozen-lockfile
 
 # ── migrator: runs prisma migrate deploy and exits ─────────────────────────
@@ -24,6 +25,7 @@ ARG APP_NAME
 COPY . .
 RUN pnpm --filter @jqs/database generate
 RUN pnpm --filter @jqs/database build
+RUN pnpm --filter @jqs/common build
 RUN pnpm --filter @jqs/${APP_NAME} build
 RUN pnpm --filter @jqs/${APP_NAME} deploy --prod --legacy /out
 

@@ -52,6 +52,7 @@ apps/
   worker/        — BullMQ processor that executes queued jobs
 packages/
   database/      — shared Prisma client (@jqs/database)
+  common/        — shared types, pipes, and constants (@jqs/common)
 ```
 
 ## Tech Stack
@@ -218,6 +219,8 @@ This project prioritizes demonstrating queue mechanics and service boundaries ov
 - **At-least-once delivery without idempotency.** BullMQ retries mean a job can execute more than once — e.g. the worker finishes the actual work but dies before the `COMPLETED` status update, BullMQ marks the job stalled, and it gets picked up and re-executed. Real handlers would need an idempotency key to make repeated execution safe.
 - **Auth is duplicated across services.** Each service runs its own JWT guard rather than relying solely on the gateway, because the service ports (3001, 3002) are directly reachable and not just proxied. For production this means closing the direct ports and/or extracting the guard into a shared package.
 - **No refresh token.** The access token expires after 7 days with no rotation mechanism.
+- **`DELETE /jobs/:id` doesn't remove the job from the queue.** It only deletes the Postgres row; a `PENDING`/`RETRYING` job already sitting in BullMQ/Redis still gets picked up later (the worker then just logs a warning and skips it, since the DB row is gone — no crash, but wasted processing). Fixing this also requires passing an explicit `jobId: job.id` option to `jobQueue.add(...)` in `create()` — right now BullMQ assigns its own internal id, decoupled from the Postgres `job.id`, so there's no cheap way to look the queued job back up by id to remove it.
+- **All services share one Postgres user.** `migrator`, `auth-service`, `job-service`, and `worker` all connect as the same `POSTGRES_USER` superuser — no least-privilege separation (e.g. `worker` can `DELETE` from `User`, `auth-service` can touch `Job`). Fixing this needs at least two roles: a migration owner with full DDL rights, and per-service runtime roles with `GRANT`s scoped to what each service actually touches — those grants aren't managed by `prisma migrate` itself and would need separate upkeep.
 - **BullMQ version is pinned.** `attemptsMade` semantics differ between BullMQ v4 and v5, so the dependency is pinned rather than left on a floating range.
 
 > **Note:** The worker simulates job execution — it does not perform any real work (no emails sent, no reports generated, etc.). The `name` and `payload` fields are logged and the job is marked as completed after a short artificial delay. This project demonstrates the infrastructure and queue mechanics, not domain-specific job logic.

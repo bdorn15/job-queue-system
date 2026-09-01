@@ -2,7 +2,7 @@ import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
 import { PrismaService } from '@jqs/database';
-import { JOB_QUEUE } from './jobs.constants';
+import { JOB_QUEUE } from '@jqs/common';
 
 @Processor(JOB_QUEUE)
 export class JobsProcessor extends WorkerHost {

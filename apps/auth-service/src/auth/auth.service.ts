@@ -2,6 +2,7 @@ import { Injectable, ConflictException, UnauthorizedException } from '@nestjs/co
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { PrismaService } from '@jqs/database';
+import { JwtPayload } from '@jqs/common';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 
@@ -37,7 +38,8 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const token = this.jwt.sign({ sub: user.id, email: user.email });
+    const payload: JwtPayload = { sub: user.id, email: user.email };
+    const token = this.jwt.sign(payload);
     return { accessToken: token };
   }
 }

@@ -53,6 +53,9 @@ importers:
 
   apps/auth-service:
     dependencies:
+      '@jqs/common':
+        specifier: workspace:*
+        version: link:../../packages/common
       '@jqs/database':
         specifier: workspace:*
         version: link:../../packages/database
@@ -108,6 +111,9 @@ importers:
 
   apps/job-service:
     dependencies:
+      '@jqs/common':
+        specifier: workspace:*
+        version: link:../../packages/common
       '@jqs/database':
         specifier: workspace:*
         version: link:../../packages/database
@@ -157,6 +163,9 @@ importers:
 
   apps/worker:
     dependencies:
+      '@jqs/common':
+        specifier: workspace:*
+        version: link:../../packages/common
       '@jqs/database':
         specifier: workspace:*
         version: link:../../packages/database
@@ -185,6 +194,19 @@ importers:
       '@types/node':
         specifier: ^20.0.0
         version: 20.19.39
+      typescript:
+        specifier: ^5.3.3
+        version: 5.9.3
+
+  packages/common:
+    dependencies:
+      '@nestjs/common':
+        specifier: ^10.3.0
+        version: 10.4.22(reflect-metadata@0.2.2)(rxjs@7.8.2)
+      zod:
+        specifier: ^3.22.4
+        version: 3.25.76
+    devDependencies:
       typescript:
         specifier: ^5.3.3
         version: 5.9.3
