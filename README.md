@@ -110,7 +110,7 @@ Services available after startup:
 | Job Service Swagger | http://localhost:3001/docs |
 | Auth Service Swagger | http://localhost:3002/docs |
 
-The direct service ports (3001, 3002) and their Swagger docs are exposed for local development only — see [Known Limitations](#known-limitations).
+The direct service ports (3001, 3002) and their Swagger docs are exposed for local development and testing convenience; closing them off is a pre-production hardening step, not yet needed at this stage.
 
 ### Local Development
 
@@ -217,9 +217,7 @@ This project prioritizes demonstrating queue mechanics and service boundaries ov
 
 - **Dual write without a transaction.** The DB insert and the Redis enqueue (step 3 above) are two separate systems — a crash between them leaves an orphaned `PENDING` job that's never enqueued, and there's no reconciliation mechanism to detect or recover it. A periodic reconciliation job (re-enqueue stale `PENDING` rows) or a transactional outbox pattern would close this gap.
 - **At-least-once delivery without idempotency.** BullMQ retries mean a job can execute more than once — e.g. the worker finishes the actual work but dies before the `COMPLETED` status update, BullMQ marks the job stalled, and it gets picked up and re-executed. Real handlers would need an idempotency key to make repeated execution safe.
-- **Auth is duplicated across services.** Each service runs its own JWT guard rather than relying solely on the gateway, because the service ports (3001, 3002) are directly reachable and not just proxied. For production this means closing the direct ports and/or extracting the guard into a shared package.
 - **No refresh token.** The access token expires after 7 days with no rotation mechanism.
-- **`DELETE /jobs/:id` doesn't remove the job from the queue.** It only deletes the Postgres row; a `PENDING`/`RETRYING` job already sitting in BullMQ/Redis still gets picked up later (the worker then just logs a warning and skips it, since the DB row is gone — no crash, but wasted processing). Fixing this also requires passing an explicit `jobId: job.id` option to `jobQueue.add(...)` in `create()` — right now BullMQ assigns its own internal id, decoupled from the Postgres `job.id`, so there's no cheap way to look the queued job back up by id to remove it.
 - **All services share one Postgres user.** `migrator`, `auth-service`, `job-service`, and `worker` all connect as the same `POSTGRES_USER` superuser — no least-privilege separation (e.g. `worker` can `DELETE` from `User`, `auth-service` can touch `Job`). Fixing this needs at least two roles: a migration owner with full DDL rights, and per-service runtime roles with `GRANT`s scoped to what each service actually touches — those grants aren't managed by `prisma migrate` itself and would need separate upkeep.
 - **BullMQ version is pinned.** `attemptsMade` semantics differ between BullMQ v4 and v5, so the dependency is pinned rather than left on a floating range.
 

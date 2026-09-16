@@ -53,6 +53,7 @@ export class JobsController {
   @ApiOperation({ summary: 'Delete a job' })
   @ApiResponse({ status: 200, description: 'Job deleted' })
   @ApiResponse({ status: 404, description: 'Job not found' })
+  @ApiResponse({ status: 409, description: 'Job is currently running and cannot be deleted' })
   remove(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
     return this.jobsService.remove(id, user.sub);
   }

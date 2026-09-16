@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { PrismaService, Prisma } from '@jqs/database';
@@ -28,6 +28,7 @@ export class JobsService {
     });
 
     await this.jobQueue.add(job.name, { jobId: job.id }, {
+      jobId: job.id,
       delay: Math.max(0, job.runAt.getTime() - Date.now()),
       priority: dto.priority === 'HIGH' ? 1 : dto.priority === 'LOW' ? 3 : 2,
       attempts: dto.maxAttempts,
@@ -62,6 +63,15 @@ export class JobsService {
 
     if (!job || job.userId !== userId) {
       throw new NotFoundException(`Job ${id} not found`);
+    }
+
+    const bullJob = await this.jobQueue.getJob(id);
+    if (bullJob) {
+      try {
+        await bullJob.remove();
+      } catch {
+        throw new ConflictException('Job is currently running and cannot be deleted');
+      }
     }
 
     return this.prisma.job.delete({ where: { id } });
