@@ -160,6 +160,9 @@ importers:
       typescript:
         specifier: ^5.3.3
         version: 5.9.3
+      vitest:
+        specifier: ^4.1.10
+        version: 4.1.10(@types/node@20.19.39)(vite@8.2.1(@types/node@20.19.39)(jiti@2.6.1)(terser@5.46.1))
 
   apps/worker:
     dependencies:
@@ -197,6 +200,9 @@ importers:
       typescript:
         specifier: ^5.3.3
         version: 5.9.3
+      vitest:
+        specifier: ^4.1.10
+        version: 4.1.10(@types/node@20.19.39)(vite@8.2.1(@types/node@20.19.39)(jiti@2.6.1)(terser@5.46.1))
 
   packages/common:
     dependencies:
@@ -210,6 +216,9 @@ importers:
       typescript:
         specifier: ^5.3.3
         version: 5.9.3
+      vitest:
+        specifier: ^4.1.10
+        version: 4.1.10(@types/node@20.19.39)(vite@8.2.1(@types/node@20.19.39)(jiti@2.6.1)(terser@5.46.1))
 
   packages/database:
     dependencies:
